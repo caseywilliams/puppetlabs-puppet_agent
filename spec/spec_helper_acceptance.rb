@@ -3,6 +3,8 @@ require 'beaker-rspec/helpers/serverspec'
 require 'beaker/ca_cert_helper'
 require 'erb'
 
+DEFAULT_AGENT_VERSION = '1.10.14'.freeze
+
 def stop_firewall_on(host)
   case host['platform']
     when /debian/
@@ -135,7 +137,7 @@ def setup_puppet_on(host, opts = {})
 
   puts "Setup foss puppet on #{host}"
   configure_defaults_on host, 'foss'
-  install_puppet_on host, :version => ENV['PUPPET_CLIENT_VERSION'] || '3.8.6'
+  install_puppet_agent_on host, :version => ENV['PUPPET_CLIENT_VERSION'] || DEFAULT_AGENT_VERSION
 
   puppet_opts = parser_opts(master.to_s)
   if host['platform'] =~ /windows/i
