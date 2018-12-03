@@ -2,14 +2,14 @@ fixtures:
   forge_modules:
     stdlib:
       repo: "puppetlabs/stdlib"
-      ref: "4.12.0"
+      ref: "5.1.0"
     transition:
       repo: "puppetlabs/transition"
     inifile:
       repo: "puppetlabs/inifile"
-      ref: "2.1.0"
+      ref: "2.4.0"
     apt:
       repo: "puppetlabs/apt"
-      ref: "2.3.0"
+      ref: "6.2.1"
   symlinks:
     puppet_agent: "#{source_dir}"

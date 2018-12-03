@@ -30,9 +30,9 @@ end
 def install_modules_on(host)
   install_ca_certs_on(host)
   puppet_module_install_on(host, :source => PROJ_ROOT, :module_name => 'puppet_agent')
-  on host, puppet('module', 'install', 'puppetlabs-stdlib', '--version', '4.12.0'), {:acceptable_exit_codes => [0]}
-  on host, puppet('module', 'install', 'puppetlabs-inifile', '--version', '2.1.0'), {:acceptable_exit_codes => [0]}
-  on host, puppet('module', 'install', 'puppetlabs-apt', '--version', '2.3.0'), {:acceptable_exit_codes => [0]}
+  on host, puppet('module', 'install', 'puppetlabs-stdlib', '--version', '5.1.0'), {:acceptable_exit_codes => [0]}
+  on host, puppet('module', 'install', 'puppetlabs-inifile', '--version', '2.4.0'), {:acceptable_exit_codes => [0]}
+  on host, puppet('module', 'install', 'puppetlabs-apt', '--version', '6.2.1'), {:acceptable_exit_codes => [0]}
   on host, puppet('module', 'install', 'puppetlabs-transition', '--version', '0.1.1'), {:acceptable_exit_codes => [0]}
 end
 
