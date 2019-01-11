@@ -1,7 +1,7 @@
 # == Class puppet_agent::service
 #
 # This class is meant to be called from puppet_agent.
-# It ensures services is running.
+# It ensures that managed services are running.
 #
 class puppet_agent::service {
   assert_private()
@@ -26,7 +26,6 @@ class puppet_agent::service {
       ensure => directory,
     }
   } else {
-
     $::puppet_agent::service_names.each |$service| {
       service { $service:
         ensure     => running,

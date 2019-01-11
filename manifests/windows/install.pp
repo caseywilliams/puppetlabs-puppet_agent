@@ -10,6 +10,7 @@ class puppet_agent::windows::install(
   $install_dir           = undef,
   $install_options       = [],
   $msi_move_locked_files = $::puppet_agent::msi_move_locked_files,
+  $service_names         = $::puppet_agent::params::service_names,
   ) {
   assert_private()
 
@@ -56,7 +57,7 @@ class puppet_agent::windows::install(
     default => "${::system32}\\cmd.exe"
   }
 
-  if (member($::puppet_agent::service_names, 'puppet')) {
+  if (member($service_names, 'puppet')) {
     $_agent_startup_mode = 'Automatic'
   } else {
     $_agent_startup_mode = undef
