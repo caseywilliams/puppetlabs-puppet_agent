@@ -1,9 +1,7 @@
 require 'beaker-puppet'
 require_relative '../helpers'
 
-# Tests an upgrade from one specific agent version to another.
-# @example
-#   FROM_AGENT_VERSION=6.0.1 TO_AGENT_VERSION=6.0.2 beaker exec ./tests/test_package_version_parameter.rb
+# Tests FOSS upgrades from the latest puppet 5 to the latest puppet 6
 test_name 'puppet_agent class: package_version parameter for FOSS upgrades' do
   confine :except, platform: PE_ONLY_PLATFORMS
 

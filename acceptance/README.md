@@ -13,37 +13,21 @@ unfamiliar with beaker, you can start with these documents:
 
 ### About these tests
 
-This module is responsible for upgrading and downgrading puppet-agent.  Testing
-this behavior necessarily involves repeatedly installing and uninstalling
-puppet-agent. Ideally, the test hosts would be totally destroyed and
-reprovisioned before each fresh install of puppet-agent, but beaker does not
-support workflows like this. Instead:
+This module is responsible for upgrading puppet-agent. Testing this behavior
+necessarily involves repeatedly installing and uninstalling puppet-agent.
+Ideally, the test hosts would be totally destroyed and reprovisioned before each
+fresh install of puppet-agent, but beaker does not support workflows like this.
+Instead:
 
-- Use the `run_setup` helper method to install puppet-agent, plus this module
-  and its dependencies, before the main content of each of your tests.
-- Use the `run_teardown` helper method to uninstall puppet-agent and remove
-  modules in your tests' teardown steps.
+- The `run_setup` helper installs puppet-agent, plus this module and its dependencies.
+- The `run_teardown` helper uninstalls puppet-agent and removes the modules.
 
-See [helpers.rb](./helpers.rb) for the impelementations of these methods.
+The `run_foss_upgrade_with_params` helper uses `run_setup` to install agents at
+an initial version, calls `run_teardown`, performs an upgrade using the
+puppet_agent class and a given set of params, and allows for making assertions
+about the upgraded hosts in a block.
 
-#### Environment variables affecting test behavior
-
-When the `run_setup` helper installs puppet-agent, it determines the version to
-install as follows:
-
-1. If the `FROM_AGENT_VERSION` environment variable is set, install that version.
-2. Otherwise, install the latest agent from the `FROM_PUPPET_COLLECTION`
-    environment variable (set this to `pc1`, `puppet5`, or `puppet6` for puppet
-    versions 4.x, 5.x, or 6.x respectively).
-3. Otherwise, and by default, install the latest agent from the `pc1`
-    collection (this would be puppet-agent 1.x with puppet 4.x).
-
-During your tests, you may upgrade or downgrade puppet-agent to different
-versions. Unless you're testing a version-specific behavior, any tests that
-upgrade or downgrade the version of puppet-agent should use the
-`TO_AGENT_VERSION` environment variable as the target version by default.
-Similarly, use `TO_PUPPET_COLLECTION` in similar cases where behavior is based
-on the collection instead of the agent version.
+See [`helpers.rb`](./helpers.rb) for more.
 
 ## How to run the tests
 

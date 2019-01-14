@@ -96,10 +96,11 @@ module Beaker
       end
 
       # Install puppet-agent on all agent nodes at the version determined by
-      # {agent_install_options}, and connect them to the master. This is
-      # intended to prepare SUTs for tests that upgrade puppet-agent from some
-      # initial version.
-      def run_setup
+      # install_options, and connect them to the master. This is intended to
+      # prepare SUTs for tests that upgrade puppet-agent from some initial
+      # version.
+      # @param install_options {Hash} hash of options to pass to {BeakerPuppet::install_puppet_agent_on}
+      def run_setup(install_options = agent_install_options)
         logger.notify("Setup: Install puppet-agent on agents")
 
         master_agent_version = puppet_agent_version_on(master)
@@ -108,14 +109,13 @@ module Beaker
         master_fqdn = on(master, 'facter fqdn').stdout.strip
 
         # Install the puppet-agent package and stop the firewalls
-        install_options = agent_install_options
         agents_only.each do |agent|
           if install_options[:puppet_agent_version] && dev_builds_accessible_on?(agent)
             # Install from internal sources
             install_puppet_agent_from_dev_builds_on(agent, install_options[:puppet_agent_version])
           else
             # Attempt to install from public sources; Won't work for PE platforms
-            install_puppet_agent_on(agent, agent_install_options)
+            install_puppet_agent_on(agent, install_options)
           end
 
           stop_firewall_with_puppet_on(agent)
@@ -127,7 +127,11 @@ module Beaker
 
         logger.notify("Setup: connect agents to master")
 
-        generate_and_sign_certificates
+        agents_only.each do |agent|
+          on(agent, puppet('agent --test'), acceptable_exit_codes: [1])
+        end
+
+        sign_agent_certs
 
         agents_only.each do |agent|
           fail_test("Failed to install puppet-agent on #{agent} during setup") unless puppet_agent_version_on(agent)
@@ -193,7 +197,7 @@ module Beaker
       #     }
       #     ```
       # @param [Hash] master_opts Options to pass to {Beaker::DSL::PuppetHelpers.with_puppet_running_on}.
-      # @yield [self] Invokes {Beaker::DSL::PuppetHelpers.with_puppet_running_on}, passing along master_opts, if supplied.
+      # @yield Invokes {Beaker::DSL::PuppetHelpers.with_puppet_running_on}, passing along master_opts, if supplied.
       def with_default_site_pp(site_pp_contents, master_opts = {})
         manifest_contents = %(node default { #{site_pp_contents} })
 
@@ -220,6 +224,44 @@ module Beaker
         with_puppet_running_on(master, master_opts) do
           on(agents_only, puppet("agent --test --server #{master.hostname}"), acceptable_exit_codes: [0, 2])
           yield if block_given?
+        end
+      end
+
+      # Install an `initial_version` of the puppet-agent package on agent hosts
+      # and run an upgrade using the puppet_agent module and the provided
+      # `params`, then tear down the agent hosts. Assertions may be made about
+      # the upgraded agents in a block, which receives a single, upgraded
+      # `{Beaker.Host}` as an argument.
+      # @param [String] initial_version Either a specific version of puppet-agent to install, or the name of a puppet collection to install the latest package from.
+      # @param [Hash] params Parameter values to pass to the module's puppet_agent class
+      # @param [Hash] master_opts Options to pass to {Beaker::DSL::PuppetHelpers.with_puppet_running_on}.during the initial agent installation
+      # @yield [Beaker::Host] Blocks will receive the upgraded agent as an argument
+      def run_foss_upgrade_with_params(initial_version, params, master_opts = {})
+        confine(:except, platform: PE_ONLY_PLATFORMS)
+        unless initial_version
+          raise "run_foss_upgrade_with_params requires an initial version of puppet agent to upgrade from"
+        end
+
+        if /^puppet\d+/i =~ initial_version || /^pc1/i =~ initial_version
+          # This is a puppet collection; install the latest package from it
+        else
+
+        end
+
+        teardown { run_teardown }
+        run_setup(puppet_agent_version: initial_version)
+
+        site_pp_contents = <<-PP
+        class { 'puppet_agent':
+          #{params.map { |name, value| "#{name} => #{value}" }.join(",\n")},
+          package_version
+        }
+        PP
+
+        agents_only.each do |agent|
+          with_default_site_pp(site_pp_contents, master_opts) do
+            yield(agent) if block_given?
+          end
         end
       end
     end

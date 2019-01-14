@@ -16,8 +16,8 @@ def location_for(place, fake_version = nil)
   end
 end
 
-gem "beaker", *location_for(ENV['BEAKER_VERSION'] || '~> 4')
-gem "beaker-puppet", *location_for(ENV['BEAKER_PUPPET_VERSION'] || '~> 1')
+gem "beaker", path: File.expand_path('~/work/beaker')
+gem "beaker-puppet", path: File.expand_path('~/work/beaker-puppet')
 
 gem "beaker-docker", *location_for(ENV['BEAKER_DOCKER_VERSION'] || '~> 0')
 gem "beaker-vagrant", *location_for(ENV['BEAKER_VAGRANT_VERSION'] || '~> 0')
